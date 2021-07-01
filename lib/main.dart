@@ -9,9 +9,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      routes: {
-        '/': (context) => HomeScreen(),
-        '/details': (context) => DetailScreen(),
+      onGenerateRoute: (settings) {
+        // Handle '/'
+        if (settings.name == '/') {
+          return MaterialPageRoute(builder: (context) => HomeScreen());
+        }
+        // Handle '/details/:id'
+        var uri;
+        if (settings.name != null) {
+          uri = Uri.parse(settings.name!);
+        }
+        if (uri.pathSegments.length == 2 &&
+            uri.pathSegments[0] == 'details') {
+          String id = uri.pathSegments[1];
+          return MaterialPageRoute(builder: (context) => DetailScreen(id: id));
+        }
       },
     );
   }
@@ -36,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
           child: Text('View Details'),
           onPressed: () {
-            Navigator.pushNamed(context, '/details');
+            Navigator.pushNamed(context, '/details/2');
           },
         ),
       ),
@@ -45,18 +57,25 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class DetailScreen extends StatelessWidget {
-  const DetailScreen({Key? key}) : super(key: key);
+  final String id;
+
+  const DetailScreen({Key? key, required this.id}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: Center(
-        child: TextButton(
-          child: Text('Pop!'),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        child: Column(
+          children: [
+            TextButton(
+              child: Text('Pop!'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            Text('id: $id'),
+          ],
         ),
       ),
     );
