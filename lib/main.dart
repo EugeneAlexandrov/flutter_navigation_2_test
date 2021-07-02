@@ -1,83 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_navigation_2_test/pages/book_detail_page.dart';
+import 'package:flutter_navigation_2_test/screens/books_list_screen.dart';
+
+import 'models/book.dart';
+import 'screens/books_detail_screen.dart';
+import 'screens/unknown_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(BooksApp());
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class BooksApp extends StatefulWidget {
+  BooksApp({Key? key}) : super(key: key);
+
+  @override
+  _BooksAppState createState() => _BooksAppState();
+}
+
+class _BooksAppState extends State<BooksApp> {
+  Book? _selectedBook;
+  bool show404 = false;
+  List<Book> books = [
+    Book('Left Hand of Darkness', 'Ursula K. Le Guin'),
+    Book('Too Like the Lightning', 'Ada Palmer'),
+    Book('Kindred', 'Octavia E. Butler'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      onGenerateRoute: (settings) {
-        // Handle '/'
-        if (settings.name == '/') {
-          return MaterialPageRoute(builder: (context) => HomeScreen());
-        }
-        // Handle '/details/:id'
-        var uri;
-        if (settings.name != null) {
-          uri = Uri.parse(settings.name!);
-        }
-        if (uri.pathSegments.length == 2 &&
-            uri.pathSegments[0] == 'details') {
-          String id = uri.pathSegments[1];
-          return MaterialPageRoute(builder: (context) => DetailScreen(id: id));
-        }
-      },
-    );
-  }
-}
+      title: 'Books App',
+      home: Navigator(
+        pages: [
+          MaterialPage(
+            key: ValueKey('BooksListPage'),
+            child: BooksListScreen(books: books, onTapped: _handleBookTapped),
+          ),
+          if (show404)
+            MaterialPage(key: ValueKey('UnknownPage'), child: UnknownScreen())
+          else if (_selectedBook != null) BookDetailPage(book: _selectedBook!)
+        ],
+        onPopPage: (route, result) {
+          if (!route.didPop(result)) {
+            return false;
+          }
 
-class HomeScreen extends StatefulWidget {
-  HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: MaterialButton(
-          color: Colors.red[400],
-          elevation: 8,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-          child: Text('View Details'),
-          onPressed: () {
-            Navigator.pushNamed(context, '/details/2');
-          },
-        ),
+          setState(() {
+            _selectedBook = null;
+          });
+          return true;
+        },
       ),
     );
   }
-}
 
-class DetailScreen extends StatelessWidget {
-  final String id;
-
-  const DetailScreen({Key? key, required this.id}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Column(
-          children: [
-            TextButton(
-              child: Text('Pop!'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            Text('id: $id'),
-          ],
-        ),
-      ),
-    );
+  void _handleBookTapped(Book book) {
+    setState(() {
+      _selectedBook = book;
+    });
   }
 }
